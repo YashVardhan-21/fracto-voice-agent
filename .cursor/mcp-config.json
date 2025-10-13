@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "server-github",
+      "env": {
+        "GITHUB_TOKEN": ""
+      }
+    },
+    "puppeteer": {
+      "command": "server-puppeteer"
+    },
+    "sequential-thinking": {
+      "command": "server-sequential-thinking"
+    }
+  }
+}
+
