@@ -4,6 +4,7 @@ from app.database import get_db
 from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.services.billing import BillingService, PLANS
+from app.middleware.rate_limit import limiter
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 svc = BillingService()
@@ -20,10 +21,13 @@ async def create_checkout(
     return {"checkout_url": url}
 
 @router.post("/webhook")
+@limiter.limit("60/minute")
 async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
-    payload = await request.body()
+    body = await request.body()
+    if len(body) > 1_048_576:  # 1 MB
+        raise HTTPException(413, "Payload too large")
     sig = request.headers.get("stripe-signature", "")
-    return await svc.handle_webhook(payload, sig, db)
+    return await svc.handle_webhook(body, sig, db)
 
 @router.get("/plans")
 async def list_plans():

@@ -23,5 +23,6 @@ class Settings(BaseSettings):
     stripe_webhook_secret: Optional[str] = None
     stripe_starter_price_id: Optional[str] = None
     stripe_pro_price_id: Optional[str] = None
+    frontend_url: str = "http://localhost:5173"
 
 settings = Settings()
