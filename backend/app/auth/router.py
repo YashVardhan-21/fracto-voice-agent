@@ -1,8 +1,10 @@
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
 from app.models.user import User
+from app.models.tenant import Tenant
 from app.auth.service import AuthService, verify_password, create_access_token
 from app.auth.schemas import LoginRequest, TokenResponse, UserCreate
 
@@ -30,11 +32,15 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     existing = await db.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
+    tenant_id = f"tenant_{secrets.token_hex(8)}"
+    tenant = Tenant(id=tenant_id, name=payload.full_name, slug=tenant_id, plan="starter")
+    db.add(tenant)
     user = User(
         email=payload.email,
         hashed_password=AuthService.hash_password(payload.password),
         full_name=payload.full_name,
         role=payload.role,
+        tenant_id=tenant_id,
     )
     db.add(user)
     await db.flush()
