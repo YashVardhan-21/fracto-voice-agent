@@ -19,5 +19,9 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
     scraping_delay_seconds: float = 2.0
     max_scraping_results: int = 50
+    stripe_secret_key: Optional[str] = None
+    stripe_webhook_secret: Optional[str] = None
+    stripe_starter_price_id: Optional[str] = None
+    stripe_pro_price_id: Optional[str] = None
 
 settings = Settings()
