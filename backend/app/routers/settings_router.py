@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
@@ -34,14 +34,15 @@ async def update_branding(
 ):
     result = await db.execute(select(Tenant).where(Tenant.id == current_user.tenant_id))
     tenant = result.scalar_one_or_none()
-    if tenant:
-        current = tenant.settings or {}
-        if payload.company_name is not None:
-            current["company_name"] = payload.company_name
-        if payload.primary_color is not None:
-            current["primary_color"] = payload.primary_color
-        if payload.logo_url is not None:
-            current["logo_url"] = payload.logo_url
-        tenant.settings = current
-        await db.commit()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    current = tenant.settings or {}
+    if payload.company_name is not None:
+        current["company_name"] = payload.company_name
+    if payload.primary_color is not None:
+        current["primary_color"] = payload.primary_color
+    if payload.logo_url is not None:
+        current["logo_url"] = payload.logo_url
+    tenant.settings = current
+    await db.commit()
     return {"updated": True}
