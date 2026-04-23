@@ -8,6 +8,7 @@ from app.routers.campaigns import router as campaigns_router
 from app.routers.pipeline import router as pipeline_router
 from app.routers.analytics import router as analytics_router
 from app.routers.gdpr import router as gdpr_router
+from app.middleware.rate_limit import limiter, _rate_limit_exceeded_handler, RateLimitExceeded
 
 app = FastAPI(
     title=settings.app_name,
@@ -15,6 +16,9 @@ app = FastAPI(
     docs_url="/api/docs" if settings.environment != "production" else None,
     redoc_url="/api/redoc" if settings.environment != "production" else None,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
