@@ -7,13 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import uvicorn
 
-from .core.config import settings
-from .core.database import engine, get_db
+from .config import settings
+from .database import engine, get_db
 from .models import Base
 from .routers import campaigns, companies, voice_agents, scrapers
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# TODO: use alembic migrations instead
+# Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
