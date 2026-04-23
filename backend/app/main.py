@@ -1,63 +1,47 @@
-"""
-FRACTO Voice Agent Outreach Automation System
-Main FastAPI application entry point
-"""
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-import uvicorn
+from app.config import settings
+from app.auth.router import router as auth_router
+from app.routers.companies import router as companies_router
+from app.routers.voice_agents import router as agents_router
+from app.routers.campaigns import router as campaigns_router
+from app.routers.pipeline import router as pipeline_router
+from app.routers.analytics import router as analytics_router
 
-from .config import settings
-from .database import engine, get_db
-from .models import Base
-from .routers import campaigns, companies, voice_agents, scrapers
-
-# TODO: use alembic migrations instead
-# Base.metadata.create_all(bind=engine)
-
-# Initialize FastAPI app
 app = FastAPI(
-    title="FRACTO Voice Agent Automation",
-    description="Enterprise-grade voice agent outreach automation system",
+    title=settings.app_name,
     version="1.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc"
+    docs_url="/api/docs" if settings.environment != "production" else None,
+    redoc_url="/api/redoc" if settings.environment != "production" else None,
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(campaigns.router, prefix="/api/campaigns", tags=["campaigns"])
-app.include_router(companies.router, prefix="/api/companies", tags=["companies"])
-app.include_router(voice_agents.router, prefix="/api/voice-agents", tags=["voice-agents"])
-app.include_router(scrapers.router, prefix="/api/scrapers", tags=["scrapers"])
 
-@app.get("/")
-async def root():
-    """Health check endpoint"""
-    return {"message": "FRACTO Voice Agent Automation System", "status": "active"}
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response: Response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+
+app.include_router(auth_router, prefix="/api")
+app.include_router(companies_router, prefix="/api")
+app.include_router(agents_router, prefix="/api")
+app.include_router(campaigns_router, prefix="/api")
+app.include_router(pipeline_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
+
 
 @app.get("/health")
-async def health_check():
-    """Detailed health check"""
-    return {
-        "status": "healthy",
-        "version": "1.0.0",
-        "environment": settings.ENVIRONMENT,
-        "database": "connected"
-    }
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True if settings.ENVIRONMENT == "development" else False
-    )
+async def health():
+    return {"status": "healthy", "env": settings.environment, "version": "1.0.0"}
