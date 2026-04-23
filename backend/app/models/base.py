@@ -17,4 +17,6 @@ class TimestampMixin:
 
 class TenantMixin:
     """All data scoped to a tenant. Default 'fracto' for internal use."""
+    # FK intentionally omitted — "fracto" default tenant is seeded at deploy time;
+    # adding FK here would cascade to all models and require a seed migration.
     tenant_id: Mapped[str] = mapped_column(String(64), index=True, default="fracto")
