@@ -48,6 +48,7 @@ class VapiClient:
     async def delete_assistant(self, vapi_id: str) -> bool:
         async with httpx.AsyncClient(headers=self._headers, timeout=15.0) as client:
             resp = await client.delete(f"{VAPI_BASE}/assistant/{vapi_id}")
+            resp.raise_for_status()
             return resp.status_code == 200
 
     async def make_call(self, vapi_agent_id: str, phone_number: str) -> dict:

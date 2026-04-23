@@ -95,6 +95,7 @@ class PromptGenerator:
                         "temperature": 0.7,
                     },
                 )
+                resp.raise_for_status()
                 return resp.json()["choices"][0]["message"]["content"]
         except Exception:
             return None

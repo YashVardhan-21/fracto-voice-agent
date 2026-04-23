@@ -16,6 +16,7 @@ class WebsiteAnalyzer:
                 timeout=20.0,
             ) as client:
                 resp = await client.get(url)
+                resp.raise_for_status()
                 content = resp.text[:3000]
         except Exception as e:
             return {**self._local_analysis("", company_name), "fetch_error": str(e)}
@@ -37,6 +38,7 @@ class WebsiteAnalyzer:
                     f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.gemini_api_key}",
                     json={"contents": [{"parts": [{"text": prompt}]}]},
                 )
+                resp.raise_for_status()
                 text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
                 parsed = self._parse_json(text)
                 if parsed:
@@ -59,6 +61,7 @@ class WebsiteAnalyzer:
                         "temperature": 0.2,
                     },
                 )
+                resp.raise_for_status()
                 text = resp.json()["choices"][0]["message"]["content"]
                 parsed = self._parse_json(text)
                 if parsed:
@@ -81,6 +84,7 @@ class WebsiteAnalyzer:
                         "temperature": 0.2,
                     },
                 )
+                resp.raise_for_status()
                 text = resp.json()["choices"][0]["message"]["content"]
                 parsed = self._parse_json(text)
                 if parsed:

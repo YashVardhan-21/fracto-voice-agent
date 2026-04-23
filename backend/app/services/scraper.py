@@ -47,10 +47,11 @@ class JobScraper:
                             "location": loc.get_text(strip=True) if loc else "",
                             "source": "indeed",
                         })
-                await asyncio.sleep(settings.scraping_delay_seconds)
         except Exception as e:
             print(f"Indeed scraping failed: {e} — using mock data")
-            return self._mock_data(location, limit)
+            results = self._mock_data(location, limit)
+        finally:
+            await asyncio.sleep(settings.scraping_delay_seconds)
         return results if results else self._mock_data(location, limit)
 
     def _mock_data(self, location: str, limit: int) -> list[dict]:
