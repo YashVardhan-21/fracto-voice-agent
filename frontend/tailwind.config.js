@@ -1,24 +1,19 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        'fracto-blue': '#2563eb',
-        'fracto-blue-light': '#3b82f6',
-        'fracto-blue-dark': '#1d4ed8',
-        'fracto-gray': '#6b7280',
-        'fracto-gray-light': '#9ca3af',
-        'fracto-gray-dark': '#374151',
-      },
-      fontFamily: {
-        'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
+        brand: {
+          50: '#f0f4ff',
+          100: '#e0e9ff',
+          500: '#4F46E5',
+          600: '#4338CA',
+          700: '#3730A3',
+          900: '#1e1b4b',
+        },
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-  ],
-}
+  plugins: [],
+};
