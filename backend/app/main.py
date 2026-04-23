@@ -9,6 +9,7 @@ from app.routers.pipeline import router as pipeline_router
 from app.routers.analytics import router as analytics_router
 from app.routers.gdpr import router as gdpr_router
 from app.routers.billing import router as billing_router
+from app.routers.settings_router import router as settings_router
 from app.middleware.rate_limit import limiter, _rate_limit_exceeded_handler, RateLimitExceeded
 
 app = FastAPI(
@@ -48,6 +49,7 @@ app.include_router(pipeline_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
 app.include_router(gdpr_router, prefix="/api")
 app.include_router(billing_router, prefix="/api")
+app.include_router(settings_router, prefix="/api")
 
 
 @app.get("/health")

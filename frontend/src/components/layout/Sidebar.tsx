@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
+import { useBranding } from '../../hooks/useBranding';
 import {
   HomeIcon,
   BuildingOffice2Icon,
@@ -19,12 +20,13 @@ const nav = [
 ];
 
 export function Sidebar() {
+  const { data: branding } = useBranding();
   return (
     <aside className="w-64 bg-brand-900 min-h-screen flex flex-col py-6 flex-shrink-0">
       <div className="px-6 mb-8">
         <div className="flex items-center gap-2">
           <span className="text-2xl">⚡</span>
-          <span className="text-white text-xl font-bold tracking-tight">FRACTO</span>
+          <span className="text-white text-xl font-bold tracking-tight">{branding?.company_name ?? 'FRACTO'}</span>
         </div>
         <p className="text-brand-100/60 text-xs mt-1">Voice Agent Platform</p>
       </div>
