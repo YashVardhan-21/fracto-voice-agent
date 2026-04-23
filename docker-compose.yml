@@ -1,71 +1,70 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  web:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://fracto_user:fracto_password@db:5432/fracto_db
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - db
-      - redis
-    volumes:
-      - ./backend:/app
-    networks:
-      - fracto-network
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    networks:
-      - fracto-network
-
   db:
-    image: postgres:13
+    image: postgres:16-alpine
     environment:
-      - POSTGRES_DB=fracto_db
-      - POSTGRES_USER=fracto_user
-      - POSTGRES_PASSWORD=fracto_password
+      POSTGRES_DB: fracto
+      POSTGRES_USER: fracto
+      POSTGRES_PASSWORD: fracto
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    networks:
-      - fracto-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fracto"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:6-alpine
+    image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - redis_data:/data
-    networks:
-      - fracto-network
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    env_file: ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://fracto:fracto@db:5432/fracto
+      - REDIS_URL=redis://redis:6379/0
 
   worker:
     build: ./backend
-    command: celery -A app.core.celery worker --loglevel=info
-    environment:
-      - DATABASE_URL=postgresql://fracto_user:fracto_password@db:5432/fracto_db
-      - REDIS_URL=redis://redis:6379
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    volumes:
+      - ./backend:/app
+    env_file: ./backend/.env
     depends_on:
       - db
       - redis
-    volumes:
-      - ./backend:/app
-    networks:
-      - fracto-network
+    environment:
+      - DATABASE_URL=postgresql://fracto:fracto@db:5432/fracto
+      - REDIS_URL=redis://redis:6379/0
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
-  redis_data:
-
-networks:
-  fracto-network:
-    driver: bridge
