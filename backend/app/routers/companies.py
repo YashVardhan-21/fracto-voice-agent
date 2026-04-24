@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from typing import Optional
 from app.database import get_db
 from app.models.company import Company
@@ -29,6 +29,32 @@ async def list_companies(
     if search:
         q = q.where(Company.name.ilike(f"%{search}%"))
     q = q.order_by(Company.created_at.desc()).limit(limit).offset(offset)
+    result = await db.execute(q)
+    return result.scalars().all()
+
+
+@router.get("/top-leads", response_model=list[CompanyRead])
+async def list_top_leads(
+    search: Optional[str] = None,
+    limit: int = Query(25, le=200),
+    offset: int = 0,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    q = select(Company).where(
+        Company.tenant_id == current_user.tenant_id,
+        Company.opted_out == False,
+    )
+    if search:
+        q = q.where(Company.name.ilike(f"%{search}%"))
+    q = (
+        q.order_by(
+            func.coalesce(Company.analysis_score, 0).desc(),
+            Company.created_at.desc(),
+        )
+        .limit(limit)
+        .offset(offset)
+    )
     result = await db.execute(q)
     return result.scalars().all()
 

@@ -12,8 +12,13 @@ export interface Company {
   location?: string;
   business_type?: string;
   services?: string[];
+  hours?: string;
+  offers?: string[];
+  booking_url?: string;
   phone?: string;
   analysis_score?: number;
+  website_quality_score?: number;
+  website_quality_issues?: string[];
   status: 'pending' | 'analyzing' | 'prompt_ready' | 'agent_created' | 'vapi_failed';
   created_at: string;
 }

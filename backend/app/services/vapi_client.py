@@ -3,14 +3,17 @@ from app.config import settings
 
 VAPI_BASE = "https://api.vapi.ai"
 
-VOICE_MAP = {
-    "dental": "jennifer",
-    "medical": "jennifer",
-    "legal": "mark",
-    "default": "jennifer",
-}
-
 class VapiClient:
+    @staticmethod
+    def _raise_for_status_with_body(resp: httpx.Response) -> None:
+        if resp.is_success:
+            return
+        try:
+            detail = resp.json()
+        except Exception:
+            detail = resp.text
+        raise RuntimeError(f"VAPI {resp.status_code} error: {detail}")
+
     @property
     def _headers(self) -> dict:
         return {
@@ -19,6 +22,9 @@ class VapiClient:
         }
 
     async def create_assistant(self, name: str, system_prompt: str, business_type: str = "default") -> dict:
+        if not settings.vapi_voice_id:
+            raise ValueError("VAPI_VOICE_ID is required when VAPI_API_KEY is set")
+
         payload = {
             "name": name,
             "model": {
@@ -29,26 +35,26 @@ class VapiClient:
             },
             "voice": {
                 "provider": "11labs",
-                "voiceId": VOICE_MAP.get(business_type, VOICE_MAP["default"]),
+                "voiceId": settings.vapi_voice_id,
             },
             "firstMessage": f"Thank you for calling {name}. How can I help you today?",
             "transcriber": {"provider": "deepgram", "model": "nova-2", "language": "en"},
         }
         async with httpx.AsyncClient(headers=self._headers, timeout=30.0) as client:
             resp = await client.post(f"{VAPI_BASE}/assistant", json=payload)
-            resp.raise_for_status()
+            self._raise_for_status_with_body(resp)
             return resp.json()
 
     async def get_assistant(self, vapi_id: str) -> dict:
         async with httpx.AsyncClient(headers=self._headers, timeout=15.0) as client:
             resp = await client.get(f"{VAPI_BASE}/assistant/{vapi_id}")
-            resp.raise_for_status()
+            self._raise_for_status_with_body(resp)
             return resp.json()
 
     async def delete_assistant(self, vapi_id: str) -> bool:
         async with httpx.AsyncClient(headers=self._headers, timeout=15.0) as client:
             resp = await client.delete(f"{VAPI_BASE}/assistant/{vapi_id}")
-            resp.raise_for_status()
+            self._raise_for_status_with_body(resp)
             return resp.status_code == 200
 
     async def make_call(self, vapi_agent_id: str, phone_number: str) -> dict:
@@ -61,5 +67,5 @@ class VapiClient:
         }
         async with httpx.AsyncClient(headers=self._headers, timeout=30.0) as client:
             resp = await client.post(f"{VAPI_BASE}/call/phone", json=payload)
-            resp.raise_for_status()
+            self._raise_for_status_with_body(resp)
             return resp.json()

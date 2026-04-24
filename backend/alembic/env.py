@@ -7,15 +7,28 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.config import settings
 from app.models import Base
 
+
+def _to_sync_alembic_url(url: str) -> str:
+    """
+    Alembic runs in sync mode; normalize async URLs for migrations.
+    """
+    if url.startswith("postgresql+asyncpg://"):
+        return "postgresql+psycopg2://" + url[len("postgresql+asyncpg://"):]
+    if url.startswith("sqlite+aiosqlite://"):
+        return "sqlite://" + url[len("sqlite+aiosqlite://"):]
+    return url
+
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+sync_db_url = _to_sync_alembic_url(settings.database_url)
+# Alembic configparser treats "%" as interpolation; escape URL-encoded passwords (%23, etc).
+config.set_main_option("sqlalchemy.url", sync_db_url.replace("%", "%%"))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
 def run_migrations_offline():
-    context.configure(url=settings.database_url, target_metadata=target_metadata, literal_binds=True)
+    context.configure(url=sync_db_url, target_metadata=target_metadata, literal_binds=True)
     with context.begin_transaction():
         context.run_migrations()
 

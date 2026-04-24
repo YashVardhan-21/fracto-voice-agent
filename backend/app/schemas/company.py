@@ -18,8 +18,13 @@ class CompanyRead(BaseModel):
     location: Optional[str] = None
     business_type: Optional[str] = None
     services: Optional[list] = None
+    hours: Optional[str] = None
+    offers: Optional[list] = None
+    booking_url: Optional[str] = None
     phone: Optional[str] = None
     analysis_score: Optional[float] = None
+    website_quality_score: Optional[float] = None
+    website_quality_issues: Optional[list] = None
     status: str
     created_at: datetime
 

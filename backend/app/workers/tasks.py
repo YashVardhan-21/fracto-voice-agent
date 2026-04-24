@@ -9,7 +9,13 @@ def run_pipeline_for_company(self, company_id: int):
     async def _run():
         async with AsyncSessionLocal() as db:
             pipeline = Pipeline()
-            return await pipeline.process_company(company_id, db)
+            try:
+                result = await pipeline.process_company(company_id, db)
+                await db.commit()
+                return result
+            except Exception:
+                await db.rollback()
+                raise
 
     try:
         return asyncio.run(_run())

@@ -15,10 +15,16 @@ class Settings(BaseSettings):
     deepseek_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
     vapi_api_key: Optional[str] = None
+    vapi_voice_id: Optional[str] = None
     vapi_phone_number_id: Optional[str] = None
     allowed_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
     scraping_delay_seconds: float = 2.0
     max_scraping_results: int = 50
+    allow_mock_scraping_fallback: bool = False
+    google_places_api_key: Optional[str] = None
+    adzuna_app_id: Optional[str] = None
+    adzuna_app_key: Optional[str] = None
+    adzuna_country: str = "gb"
     stripe_secret_key: Optional[str] = None
     stripe_webhook_secret: Optional[str] = None
     stripe_starter_price_id: Optional[str] = None
