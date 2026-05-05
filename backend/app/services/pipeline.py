@@ -42,7 +42,8 @@ class Pipeline:
             company.offers = analysis.get("offers", [])
             company.booking_url = analysis.get("booking_url") or company.booking_url
             company.phone = analysis.get("phone") or company.phone
-            company.email = analysis.get("email")
+            analyzed_email = analysis.get("email")
+            company.email = analyzed_email if analyzed_email else company.email or company.email
             company.analysis_score = analysis.get("confidence_score", 0.5)
             company.website_quality_score = analysis.get("website_quality_score", company.website_quality_score)
             company.website_quality_issues = analysis.get("website_quality_issues", [])

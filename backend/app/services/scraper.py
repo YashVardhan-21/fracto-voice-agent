@@ -10,6 +10,19 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
+# Conservative single-email extraction from public HTML/text (job boards, snippets).
+_EMAIL_RE = re.compile(
+    r"[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+)
+
+
+def _extract_first_email_from_text(text: str | None) -> str | None:
+    if not text or not isinstance(text, str):
+        return None
+    m = _EMAIL_RE.search(text.replace("\n", " "))
+    return m.group(0).strip() if m else None
+
+
 class JobScraper:
     """
     Scrapes Indeed for publicly-listed job postings.
@@ -37,6 +50,8 @@ class JobScraper:
             score += 25.0
         if lead.get("phone"):
             score += 10.0
+        if lead.get("email"):
+            score += 8.0
         if lead.get("website"):
             score += 10.0
         if location and "remote" not in location:
@@ -88,6 +103,8 @@ class JobScraper:
                         or card.find(class_=re.compile("companyLocation"))
                     )
                     if company and title:
+                        card_text = card.get_text(" ", strip=True)
+                        email = _extract_first_email_from_text(card_text)
                         results.append({
                             "company_name": company.get_text(strip=True),
                             "job_title": title.get_text(strip=True),
@@ -95,6 +112,7 @@ class JobScraper:
                             "source": "indeed_public",
                             "website": None,
                             "phone": None,
+                            "email": email,
                             "business_type_hint": None,
                         })
         except Exception as e:
@@ -121,6 +139,8 @@ class JobScraper:
                 normalized_location = location.lower().strip()
                 for job in jobs:
                     candidate_location = (job.get("candidate_required_location") or "").strip()
+                    desc = (job.get("description") or "") if isinstance(job.get("description"), str) else ""
+                    email = _extract_first_email_from_text(desc)
                     normalized_job = {
                         "company_name": job.get("company_name", "").strip(),
                         "job_title": job.get("title", "").strip(),
@@ -128,6 +148,7 @@ class JobScraper:
                         "source": "remotive_public",
                         "website": None,
                         "phone": None,
+                        "email": email,
                         "business_type_hint": None,
                     }
                     if normalized_job["company_name"] and normalized_job["job_title"]:
@@ -179,6 +200,9 @@ class JobScraper:
                     job_location = ((job.get("location") or {}).get("display_name") or "").strip()
                     redirect_url = (job.get("redirect_url") or "").strip()
                     if company_name and title:
+                        raw_desc = job.get("description")
+                        desc_text = raw_desc if isinstance(raw_desc, str) else ""
+                        email = _extract_first_email_from_text(desc_text)
                         results.append(
                             {
                                 "company_name": company_name,
@@ -187,6 +211,7 @@ class JobScraper:
                                 "source": "adzuna_public",
                                 "website": redirect_url or None,
                                 "phone": None,
+                                "email": email,
                                 "business_type_hint": None,
                             }
                         )
@@ -267,6 +292,17 @@ class JobScraper:
                         if isinstance(weekday_text, list) and weekday_text:
                             raw_hours = " | ".join(str(x).strip() for x in weekday_text[:3] if str(x).strip())
                             hours_text = re.sub(r"\s+", " ", raw_hours.replace("\u202f", " ").replace("\xa0", " ")).strip()
+                        place_blob = " ".join(
+                            filter(
+                                None,
+                                [
+                                    name,
+                                    place.get("formatted_address") or "",
+                                    details.get("website") or "",
+                                ],
+                            )
+                        )
+                        email = _extract_first_email_from_text(place_blob)
                         results.append(
                             {
                                 "company_name": name,
@@ -275,6 +311,7 @@ class JobScraper:
                                 "source": "google_places_public",
                                 "website": (details.get("website") or "").strip() or None,
                                 "phone": (details.get("formatted_phone_number") or "").strip() or None,
+                                "email": email,
                                 "hours": hours_text,
                                 "booking_url": (details.get("url") or "").strip() or None,
                                 "offers": [],
@@ -345,6 +382,9 @@ class JobScraper:
                 "location": location,
                 "source": "mock",
                 "business_type_hint": t[2],
+                "email": None,
+                "website": None,
+                "phone": None,
             }
             for t in templates[:limit]
         ]

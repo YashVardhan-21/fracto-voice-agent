@@ -16,6 +16,7 @@ export interface Company {
   offers?: string[];
   booking_url?: string;
   phone?: string;
+  email?: string;
   analysis_score?: number;
   website_quality_score?: number;
   website_quality_issues?: string[];

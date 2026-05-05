@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCompanies, getTopLeads, reanalyzeCompanies, runPipeline } from '../api/companies';
+import { downloadCompaniesAsXlsx } from '../utils/companyExport';
 import { Header } from '../components/layout/Header';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -100,6 +101,21 @@ export function Companies() {
             <Button
               size="sm"
               variant="secondary"
+              disabled={isLoading || companies.length === 0}
+              onClick={() => {
+                try {
+                  downloadCompaniesAsXlsx(companies, viewMode, search);
+                  toast.success('Excel file downloaded');
+                } catch {
+                  toast.error('Export failed');
+                }
+              }}
+            >
+              Export Excel
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
               loading={reanalyze.isPending}
               onClick={() => reanalyze.mutate(viewMode)}
             >
@@ -116,6 +132,7 @@ export function Companies() {
                   'Company',
                   'Type',
                   'Location',
+                  'Email',
                   'Score',
                   'Website Quality',
                   'Upsell Opportunity',
@@ -134,14 +151,14 @@ export function Companies() {
             <tbody className="divide-y divide-gray-100">
               {isLoading && (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 text-gray-400">
+                  <td colSpan={9} className="text-center py-8 text-gray-400">
                     Loading…
                   </td>
                 </tr>
               )}
               {!isLoading && companies.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 text-gray-400">
+                  <td colSpan={9} className="text-center py-8 text-gray-400">
                     No companies yet. Run the pipeline to get started.
                   </td>
                 </tr>
@@ -153,6 +170,9 @@ export function Companies() {
                     {c.business_type ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-gray-500">{c.location ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 max-w-[220px] truncate" title={c.email ?? undefined}>
+                    {c.email ?? '—'}
+                  </td>
                   <td className="px-4 py-3">{formatScore(c.analysis_score)}</td>
                   <td className="px-4 py-3">
                     <span

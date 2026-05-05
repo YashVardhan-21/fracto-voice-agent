@@ -56,6 +56,7 @@ async def scrape_jobs(
                 offers=job.get("offers"),
                 booking_url=job.get("booking_url"),
                 phone=job.get("phone"),
+                email=job.get("email"),
                 tenant_id=current_user.tenant_id,
                 data_source=job.get("source", "unknown"),
                 analysis_score=lead_score,
@@ -70,6 +71,9 @@ async def scrape_jobs(
             existing_company.location = job.get("location") or existing_company.location
             existing_company.website = job.get("website") or existing_company.website
             existing_company.phone = job.get("phone") or existing_company.phone
+            scraped_email = job.get("email")
+            if scraped_email:
+                existing_company.email = scraped_email
             existing_company.business_type = job.get("business_type_hint") or existing_company.business_type
             existing_company.hours = job.get("hours") or existing_company.hours
             existing_company.booking_url = job.get("booking_url") or existing_company.booking_url

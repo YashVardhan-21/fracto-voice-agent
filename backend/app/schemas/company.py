@@ -9,6 +9,7 @@ class CompanyCreate(BaseModel):
     position: Optional[str] = None
     location: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
 
 
 class CompanyRead(BaseModel):
@@ -22,6 +23,7 @@ class CompanyRead(BaseModel):
     offers: Optional[list] = None
     booking_url: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     analysis_score: Optional[float] = None
     website_quality_score: Optional[float] = None
     website_quality_issues: Optional[list] = None
@@ -35,4 +37,5 @@ class CompanyUpdate(BaseModel):
     name: Optional[str] = None
     website: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     status: Optional[str] = None
