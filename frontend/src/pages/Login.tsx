@@ -23,6 +23,8 @@ export function Login() {
         email: data.email,
         full_name: data.full_name,
         role: data.role as 'agent' | 'manager' | 'admin',
+        is_admin: data.is_admin,
+        tenant_id: data.tenant_id,
       });
       navigate('/');
     } catch {

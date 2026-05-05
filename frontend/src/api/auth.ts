@@ -7,6 +7,8 @@ export interface LoginResponse {
   email: string;
   full_name: string;
   role: string;
+  is_admin: boolean;
+  tenant_id: string;
 }
 
 export const login = (email: string, password: string) =>

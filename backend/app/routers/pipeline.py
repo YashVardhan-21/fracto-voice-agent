@@ -6,12 +6,15 @@ from sqlalchemy import func, select
 from pydantic import BaseModel
 from app.database import get_db
 from app.models.company import Company
+from app.models.tenant import Tenant
 from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.services.scraper import JobScraper
+from app.services.tenant_integrations import TenantIntegrationsService
 from app.workers.tasks import run_pipeline_for_company
 
 router = APIRouter(prefix="/pipeline", tags=["pipeline"])
+_integrations = TenantIntegrationsService()
 
 
 class ScrapeRequest(BaseModel):
@@ -32,7 +35,15 @@ async def scrape_jobs(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    scraper = JobScraper()
+    tenant_result = await db.execute(select(Tenant).where(Tenant.id == current_user.tenant_id))
+    tenant = tenant_result.scalar_one_or_none()
+    credentials = _integrations.effective_credentials((tenant.settings or {}) if tenant else {})
+    scraper = JobScraper(
+        google_places_api_key=credentials.get("google_places_api_key"),
+        adzuna_app_id=credentials.get("adzuna_app_id"),
+        adzuna_app_key=credentials.get("adzuna_app_key"),
+        adzuna_country=credentials.get("adzuna_country"),
+    )
     jobs, diagnostics = await scraper.scrape_jobs(payload.keywords, payload.location, payload.limit)
     created = []
     updated = []
@@ -108,7 +119,7 @@ async def analyze_company(
     company = result.scalar_one_or_none()
     if not company:
         raise HTTPException(404, "Company not found")
-    run_pipeline_for_company.delay(company_id)
+    run_pipeline_for_company.delay(company_id, current_user.tenant_id)
     return {"message": "Pipeline started", "company_id": company_id}
 
 
@@ -124,7 +135,7 @@ async def run_batch(
     )
     companies = result.scalars().all()
     for c in companies:
-        run_pipeline_for_company.delay(c.id)
+        run_pipeline_for_company.delay(c.id, current_user.tenant_id)
     return {"queued": len(companies)}
 
 
@@ -150,7 +161,7 @@ async def reanalyze_companies(
 
     company_ids = (await db.execute(stmt)).scalars().all()
     for company_id in company_ids:
-        run_pipeline_for_company.delay(company_id)
+        run_pipeline_for_company.delay(company_id, current_user.tenant_id)
 
     return {
         "queued": len(company_ids),

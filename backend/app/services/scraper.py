@@ -29,6 +29,17 @@ class JobScraper:
     Collects only: company name, job title, location — no personal data.
     GDPR-safe: public business information only.
     """
+    def __init__(
+        self,
+        google_places_api_key: str | None = None,
+        adzuna_app_id: str | None = None,
+        adzuna_app_key: str | None = None,
+        adzuna_country: str | None = None,
+    ):
+        self.google_places_api_key = google_places_api_key or settings.google_places_api_key
+        self.adzuna_app_id = adzuna_app_id or settings.adzuna_app_id
+        self.adzuna_app_key = adzuna_app_key or settings.adzuna_app_key
+        self.adzuna_country = adzuna_country or settings.adzuna_country
 
     @staticmethod
     def _normalize_name(name: str) -> str:
@@ -172,21 +183,21 @@ class JobScraper:
 
     async def scrape_adzuna(self, keywords: str, location: str, limit: int = 20) -> tuple[list[dict], dict]:
         diagnostics = {"source": "adzuna_public", "url": "", "status_code": None, "error": None}
-        if not settings.adzuna_app_id or not settings.adzuna_app_key:
+        if not self.adzuna_app_id or not self.adzuna_app_key:
             diagnostics["error"] = "ADZUNA_APP_ID or ADZUNA_APP_KEY missing"
             return [], diagnostics
 
-        country = settings.adzuna_country.lower().strip()
+        country = self.adzuna_country.lower().strip()
         base_url = f"https://api.adzuna.com/v1/api/jobs/{country}/search/1"
         url = (
-            f"{base_url}?app_id={quote_plus(settings.adzuna_app_id)}"
-            f"&app_key={quote_plus(settings.adzuna_app_key)}"
+            f"{base_url}?app_id={quote_plus(self.adzuna_app_id)}"
+            f"&app_key={quote_plus(self.adzuna_app_key)}"
             f"&results_per_page={min(limit, 50)}"
             f"&what={quote_plus(keywords)}"
             f"&where={quote_plus(location)}"
             f"&content-type=application/json"
         )
-        diagnostics["url"] = url.replace(settings.adzuna_app_key, "***")
+        diagnostics["url"] = url.replace(self.adzuna_app_key, "***")
         results: list[dict] = []
 
         try:
@@ -224,7 +235,7 @@ class JobScraper:
 
     async def scrape_google_places(self, keywords: str, location: str, limit: int = 20) -> tuple[list[dict], dict]:
         diagnostics = {"source": "google_places_public", "url": "", "status_code": None, "error": None}
-        if not settings.google_places_api_key:
+        if not self.google_places_api_key:
             diagnostics["error"] = "GOOGLE_PLACES_API_KEY missing"
             return [], diagnostics
 
@@ -248,7 +259,7 @@ class JobScraper:
                         "https://maps.googleapis.com/maps/api/place/details/json"
                         f"?place_id={quote_plus(place_id)}"
                         "&fields=website,formatted_phone_number,opening_hours,url"
-                        f"&key={quote_plus(settings.google_places_api_key)}"
+                        f"&key={quote_plus(self.google_places_api_key)}"
                     )
                     details_resp = await client.get(details_url)
                     details_resp.raise_for_status()
@@ -263,7 +274,7 @@ class JobScraper:
                     query = f"{category} in {location}"
                     url = (
                         "https://maps.googleapis.com/maps/api/place/textsearch/json"
-                        f"?query={quote_plus(query)}&key={quote_plus(settings.google_places_api_key)}"
+                        f"?query={quote_plus(query)}&key={quote_plus(self.google_places_api_key)}"
                     )
                     diagnostics["url"] = "https://maps.googleapis.com/maps/api/place/textsearch/json?query=<redacted>&key=***"
                     resp = await client.get(url)

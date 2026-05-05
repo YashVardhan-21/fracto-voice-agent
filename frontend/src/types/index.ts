@@ -3,6 +3,8 @@ export interface User {
   email: string;
   full_name: string;
   role: 'agent' | 'manager' | 'admin';
+  is_admin: boolean;
+  tenant_id: string;
 }
 
 export interface Company {

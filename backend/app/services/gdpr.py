@@ -9,9 +9,11 @@ from datetime import datetime, timezone
 
 class GDPRService:
 
-    async def opt_out_company(self, company_id: int, db: AsyncSession, actor_id: int) -> bool:
+    async def opt_out_company(self, company_id: int, tenant_id: str, db: AsyncSession, actor_id: int) -> bool:
         """Mark company as opted-out — no further outreach. Irreversible via UI."""
-        result = await db.execute(select(Company).where(Company.id == company_id))
+        result = await db.execute(
+            select(Company).where(Company.id == company_id, Company.tenant_id == tenant_id)
+        )
         company = result.scalar_one_or_none()
         if not company:
             return False
@@ -30,15 +32,19 @@ class GDPRService:
         )
         return True
 
-    async def delete_company_data(self, company_id: int, db: AsyncSession, actor_id: int) -> dict:
+    async def delete_company_data(self, company_id: int, tenant_id: str, db: AsyncSession, actor_id: int) -> dict:
         """Right to erasure — anonymises all PII. Keeps audit log entry."""
-        result = await db.execute(select(Company).where(Company.id == company_id))
+        result = await db.execute(
+            select(Company).where(Company.id == company_id, Company.tenant_id == tenant_id)
+        )
         company = result.scalar_one_or_none()
         if not company:
             return {"deleted": False, "reason": "not_found"}
 
         agent_result = await db.execute(
-            select(VoiceAgent).where(VoiceAgent.company_id == company_id)
+            select(VoiceAgent).where(
+                VoiceAgent.company_id == company_id, VoiceAgent.tenant_id == tenant_id
+            )
         )
         agents = agent_result.scalars().all()
         agent_ids = [a.id for a in agents]
@@ -71,14 +77,18 @@ class GDPRService:
         )
         return {"deleted": True, "agents_anonymised": len(agents)}
 
-    async def export_company_data(self, company_id: int, db: AsyncSession) -> dict:
+    async def export_company_data(self, company_id: int, tenant_id: str, db: AsyncSession) -> dict:
         """Right to data portability — export all data held for a company."""
-        result = await db.execute(select(Company).where(Company.id == company_id))
+        result = await db.execute(
+            select(Company).where(Company.id == company_id, Company.tenant_id == tenant_id)
+        )
         company = result.scalar_one_or_none()
         if not company:
             return {}
         agents_result = await db.execute(
-            select(VoiceAgent).where(VoiceAgent.company_id == company_id)
+            select(VoiceAgent).where(
+                VoiceAgent.company_id == company_id, VoiceAgent.tenant_id == tenant_id
+            )
         )
         agents = agents_result.scalars().all()
         return {

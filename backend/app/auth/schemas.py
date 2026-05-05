@@ -13,6 +13,8 @@ class TokenResponse(BaseModel):
     email: str
     full_name: str
     role: str
+    is_admin: bool
+    tenant_id: str
 
 
 class UserCreate(BaseModel):

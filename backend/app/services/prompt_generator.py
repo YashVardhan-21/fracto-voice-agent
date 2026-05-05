@@ -46,6 +46,9 @@ CALL FLOW
 - Confirm captured details before ending."""
 
 class PromptGenerator:
+    def __init__(self, openai_api_key: str | None = None):
+        self.openai_api_key = openai_api_key or settings.openai_api_key
+
     @staticmethod
     def _compact_services(services: list[str] | None) -> str:
         if not services:
@@ -102,14 +105,14 @@ class PromptGenerator:
         )
 
     async def generate_with_llm(self, company: dict) -> Optional[str]:
-        if not settings.openai_api_key:
+        if not self.openai_api_key:
             return None
         base = self.generate_local(company)
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
                 resp = await client.post(
                     "https://api.openai.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+                    headers={"Authorization": f"Bearer {self.openai_api_key}"},
                     json={
                         "model": "gpt-4o-mini",
                         "messages": [

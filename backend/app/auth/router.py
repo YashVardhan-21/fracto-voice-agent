@@ -31,6 +31,8 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
         email=user.email,
         full_name=user.full_name,
         role=user.role,
+        is_admin=user.is_admin,
+        tenant_id=user.tenant_id,
     )
 
 
@@ -48,6 +50,7 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
         hashed_password=AuthService.hash_password(payload.password),
         full_name=payload.full_name,
         role=payload.role,
+        is_admin=payload.role == "admin",
         tenant_id=tenant_id,
     )
     try:
@@ -63,4 +66,6 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
         email=user.email,
         full_name=user.full_name,
         role=user.role,
+        is_admin=user.is_admin,
+        tenant_id=user.tenant_id,
     )

@@ -8,6 +8,15 @@ from app.config import settings
 
 class WebsiteAnalyzer:
     """Multi-provider LLM analyzer with local keyword fallback."""
+    def __init__(
+        self,
+        gemini_api_key: str | None = None,
+        openai_api_key: str | None = None,
+        deepseek_api_key: str | None = None,
+    ):
+        self.gemini_api_key = gemini_api_key or settings.gemini_api_key
+        self.openai_api_key = openai_api_key or settings.openai_api_key
+        self.deepseek_api_key = deepseek_api_key or settings.deepseek_api_key
 
     async def analyze(self, url: str, company_name: str) -> dict:
         content = ""
@@ -34,13 +43,13 @@ class WebsiteAnalyzer:
         return self._local_analysis(content, company_name, html, url)
 
     async def _gemini(self, content: str, company_name: str) -> Optional[dict]:
-        if not settings.gemini_api_key:
+        if not self.gemini_api_key:
             return None
         prompt = self._build_prompt(content, company_name)
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
                 resp = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.gemini_api_key}",
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}",
                     json={"contents": [{"parts": [{"text": prompt}]}]},
                 )
                 resp.raise_for_status()
@@ -52,14 +61,14 @@ class WebsiteAnalyzer:
             return None
 
     async def _openai(self, content: str, company_name: str) -> Optional[dict]:
-        if not settings.openai_api_key:
+        if not self.openai_api_key:
             return None
         prompt = self._build_prompt(content, company_name)
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
                 resp = await client.post(
                     "https://api.openai.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+                    headers={"Authorization": f"Bearer {self.openai_api_key}"},
                     json={
                         "model": "gpt-4o-mini",
                         "messages": [{"role": "user", "content": prompt}],
@@ -75,14 +84,14 @@ class WebsiteAnalyzer:
             return None
 
     async def _deepseek(self, content: str, company_name: str) -> Optional[dict]:
-        if not settings.deepseek_api_key:
+        if not self.deepseek_api_key:
             return None
         prompt = self._build_prompt(content, company_name)
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
                 resp = await client.post(
                     "https://api.deepseek.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {settings.deepseek_api_key}"},
+                    headers={"Authorization": f"Bearer {self.deepseek_api_key}"},
                     json={
                         "model": "deepseek-chat",
                         "messages": [{"role": "user", "content": prompt}],

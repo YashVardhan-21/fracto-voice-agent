@@ -2,7 +2,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        protected_namespaces=("model_",),
+    )
 
     app_name: str = "FRACTO Voice Agent Platform"
     environment: str = "development"
@@ -30,5 +34,6 @@ class Settings(BaseSettings):
     stripe_starter_price_id: Optional[str] = None
     stripe_pro_price_id: Optional[str] = None
     frontend_url: str = "http://localhost:5173"
+    settings_encryption_key: Optional[str] = None
 
 settings = Settings()

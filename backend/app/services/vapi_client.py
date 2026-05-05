@@ -4,6 +4,16 @@ from app.config import settings
 VAPI_BASE = "https://api.vapi.ai"
 
 class VapiClient:
+    def __init__(
+        self,
+        api_key: str | None = None,
+        voice_id: str | None = None,
+        phone_number_id: str | None = None,
+    ):
+        self.api_key = api_key or settings.vapi_api_key
+        self.voice_id = voice_id or settings.vapi_voice_id
+        self.phone_number_id = phone_number_id or settings.vapi_phone_number_id
+
     @staticmethod
     def _raise_for_status_with_body(resp: httpx.Response) -> None:
         if resp.is_success:
@@ -16,13 +26,15 @@ class VapiClient:
 
     @property
     def _headers(self) -> dict:
+        if not self.api_key:
+            raise ValueError("VAPI API key is missing for this tenant")
         return {
-            "Authorization": f"Bearer {settings.vapi_api_key}",
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
 
     async def create_assistant(self, name: str, system_prompt: str, business_type: str = "default") -> dict:
-        if not settings.vapi_voice_id:
+        if not self.voice_id:
             raise ValueError("VAPI_VOICE_ID is required when VAPI_API_KEY is set")
 
         payload = {
@@ -35,7 +47,7 @@ class VapiClient:
             },
             "voice": {
                 "provider": "11labs",
-                "voiceId": settings.vapi_voice_id,
+                "voiceId": self.voice_id,
             },
             "firstMessage": f"Thank you for calling {name}. How can I help you today?",
             "transcriber": {"provider": "deepgram", "model": "nova-2", "language": "en"},
@@ -58,12 +70,12 @@ class VapiClient:
             return resp.status_code == 200
 
     async def make_call(self, vapi_agent_id: str, phone_number: str) -> dict:
-        if not settings.vapi_phone_number_id:
+        if not self.phone_number_id:
             raise ValueError("VAPI_PHONE_NUMBER_ID not configured")
         payload = {
             "assistantId": vapi_agent_id,
             "customer": {"number": phone_number},
-            "phoneNumberId": settings.vapi_phone_number_id,
+            "phoneNumberId": self.phone_number_id,
         }
         async with httpx.AsyncClient(headers=self._headers, timeout=30.0) as client:
             resp = await client.post(f"{VAPI_BASE}/call/phone", json=payload)

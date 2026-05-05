@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { useBranding } from '../../hooks/useBranding';
+import { useAuthStore } from '../../store/authStore';
 import {
   HomeIcon,
   BuildingOffice2Icon,
@@ -8,6 +9,7 @@ import {
   MegaphoneIcon,
   ChartBarIcon,
   BoltIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
 const nav = [
@@ -21,6 +23,10 @@ const nav = [
 
 export function Sidebar() {
   const { data: branding } = useBranding();
+  const user = useAuthStore((s) => s.user);
+  const menu = user?.is_admin
+    ? [...nav, { to: '/settings', label: 'Settings', icon: Cog6ToothIcon }]
+    : nav;
   return (
     <aside className="w-64 bg-brand-900 min-h-screen flex flex-col py-6 flex-shrink-0">
       <div className="px-6 mb-8">
@@ -31,7 +37,7 @@ export function Sidebar() {
         <p className="text-brand-100/60 text-xs mt-1">Voice Agent Platform</p>
       </div>
       <nav className="flex-1 px-3 space-y-1">
-        {nav.map(({ to, label, icon: Icon }) => (
+        {menu.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}

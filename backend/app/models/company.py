@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Float, Integer, JSON
+from sqlalchemy import String, Float, Integer, JSON, DateTime
 from .base import Base, TimestampMixin, TenantMixin
 
 class Company(Base, TimestampMixin, TenantMixin):
@@ -21,6 +21,10 @@ class Company(Base, TimestampMixin, TenantMixin):
     website_quality_score: Mapped[float | None] = mapped_column(Float)
     website_quality_issues: Mapped[list | None] = mapped_column(JSON)
     analysis_source: Mapped[str | None] = mapped_column(String(50))
+    owner_user_id: Mapped[int | None] = mapped_column(Integer, index=True)
+    pipeline_stage: Mapped[str | None] = mapped_column(String(50), index=True)
+    last_contacted_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True))
+    notes: Mapped[str | None] = mapped_column(String(2000))
     status: Mapped[str] = mapped_column(String(50), default="pending", index=True)
     data_source: Mapped[str | None] = mapped_column(String(100))
     opted_out: Mapped[bool] = mapped_column(default=False)

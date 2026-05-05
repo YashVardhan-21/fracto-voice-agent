@@ -10,6 +10,9 @@ class CompanyCreate(BaseModel):
     location: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
+    owner_user_id: Optional[int] = None
+    pipeline_stage: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class CompanyRead(BaseModel):
@@ -24,6 +27,10 @@ class CompanyRead(BaseModel):
     booking_url: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
+    owner_user_id: Optional[int] = None
+    pipeline_stage: Optional[str] = None
+    last_contacted_at: Optional[datetime] = None
+    notes: Optional[str] = None
     analysis_score: Optional[float] = None
     website_quality_score: Optional[float] = None
     website_quality_issues: Optional[list] = None
@@ -38,4 +45,8 @@ class CompanyUpdate(BaseModel):
     website: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
+    owner_user_id: Optional[int] = None
+    pipeline_stage: Optional[str] = None
+    last_contacted_at: Optional[datetime] = None
+    notes: Optional[str] = None
     status: Optional[str] = None

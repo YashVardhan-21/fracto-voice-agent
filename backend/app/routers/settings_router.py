@@ -7,13 +7,40 @@ from app.database import get_db
 from app.auth.dependencies import get_current_user, require_admin
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.services.tenant_integrations import TenantIntegrationsService
 
 router = APIRouter(prefix="/settings", tags=["settings"])
+_integrations = TenantIntegrationsService()
 
 class BrandingUpdate(BaseModel):
     company_name: Optional[str] = None
     primary_color: Optional[str] = None
     logo_url: Optional[str] = None
+
+
+class VapiIntegrationPatch(BaseModel):
+    api_key: Optional[str] = None
+    voice_id: Optional[str] = None
+    phone_number_id: Optional[str] = None
+
+
+class LlmIntegrationPatch(BaseModel):
+    openai_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    deepseek_api_key: Optional[str] = None
+
+
+class LeadIntegrationPatch(BaseModel):
+    google_places_api_key: Optional[str] = None
+    adzuna_app_id: Optional[str] = None
+    adzuna_app_key: Optional[str] = None
+    adzuna_country: Optional[str] = None
+
+
+class IntegrationsPatch(BaseModel):
+    vapi: Optional[VapiIntegrationPatch] = None
+    llm: Optional[LlmIntegrationPatch] = None
+    leads: Optional[LeadIntegrationPatch] = None
 
 @router.get("/branding")
 async def get_branding(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
@@ -44,5 +71,33 @@ async def update_branding(
     if payload.logo_url is not None:
         current["logo_url"] = payload.logo_url
     tenant.settings = current
+    await db.commit()
+    return {"updated": True}
+
+
+@router.get("/integrations")
+async def get_integrations(
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Tenant).where(Tenant.id == current_user.tenant_id))
+    tenant = result.scalar_one_or_none()
+    tenant_settings = (tenant.settings or {}) if tenant else {}
+    return _integrations.read_masked(tenant_settings)
+
+
+@router.patch("/integrations")
+async def update_integrations(
+    payload: IntegrationsPatch,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Tenant).where(Tenant.id == current_user.tenant_id))
+    tenant = result.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    current = tenant.settings or {}
+    tenant.settings = _integrations.update(current, payload.model_dump(exclude_none=True))
     await db.commit()
     return {"updated": True}

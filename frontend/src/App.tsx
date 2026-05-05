@@ -9,6 +9,7 @@ import { Companies } from './pages/Companies';
 import { VoiceAgents } from './pages/VoiceAgents';
 import { Campaigns } from './pages/Campaigns';
 import { Analytics } from './pages/Analytics';
+import { Settings } from './pages/Settings';
 import { useAuthStore } from './store/authStore';
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="agents" element={<VoiceAgents />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

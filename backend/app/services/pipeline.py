@@ -1,11 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.company import Company
+from app.models.tenant import Tenant
 from app.models.voice_agent import VoiceAgent
 from app.services.website_analyzer import WebsiteAnalyzer
 from app.services.prompt_generator import PromptGenerator
 from app.services.vapi_client import VapiClient
-from app.config import settings
+from app.services.tenant_integrations import TenantIntegrationsService
 
 
 class Pipeline:
@@ -15,9 +16,7 @@ class Pipeline:
     """
 
     def __init__(self):
-        self.analyzer = WebsiteAnalyzer()
-        self.generator = PromptGenerator()
-        self.vapi = VapiClient()
+        self.integrations = TenantIntegrationsService()
 
     @staticmethod
     def _agent_name(company_name: str) -> str:
@@ -25,17 +24,34 @@ class Pipeline:
         base = f"{company_name} — AI Receptionist"
         return base if len(base) <= 40 else base[:40]
 
-    async def process_company(self, company_id: int, db: AsyncSession) -> dict:
-        result = await db.execute(select(Company).where(Company.id == company_id))
+    async def process_company(self, company_id: int, tenant_id: str, db: AsyncSession) -> dict:
+        result = await db.execute(
+            select(Company).where(Company.id == company_id, Company.tenant_id == tenant_id)
+        )
         company = result.scalar_one_or_none()
         if not company:
             return {"success": False, "error": "Company not found"}
+
+        tenant_result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+        tenant = tenant_result.scalar_one_or_none()
+        credentials = self.integrations.effective_credentials((tenant.settings or {}) if tenant else {})
+        analyzer = WebsiteAnalyzer(
+            gemini_api_key=credentials.get("gemini_api_key"),
+            openai_api_key=credentials.get("openai_api_key"),
+            deepseek_api_key=credentials.get("deepseek_api_key"),
+        )
+        generator = PromptGenerator(openai_api_key=credentials.get("openai_api_key"))
+        vapi = VapiClient(
+            api_key=credentials.get("vapi_api_key"),
+            voice_id=credentials.get("vapi_voice_id"),
+            phone_number_id=credentials.get("vapi_phone_number_id"),
+        )
 
         company.status = "analyzing"
         await db.flush()
 
         if company.website:
-            analysis = await self.analyzer.analyze(company.website, company.name)
+            analysis = await analyzer.analyze(company.website, company.name)
             company.business_type = analysis.get("business_type", company.business_type)
             company.services = analysis.get("services", [])
             company.hours = analysis.get("hours") or company.hours
@@ -61,7 +77,7 @@ class Pipeline:
             "website_quality_score": company.website_quality_score,
             "website_quality_issues": company.website_quality_issues or [],
         }
-        prompt = await self.generator.generate(company_data)
+        prompt = await generator.generate(company_data)
 
         existing_agent_result = await db.execute(
             select(VoiceAgent).where(
@@ -71,9 +87,9 @@ class Pipeline:
         )
         existing_agent = existing_agent_result.scalars().first()
 
-        if settings.vapi_api_key:
+        if credentials.get("vapi_api_key"):
             try:
-                vapi_result = await self.vapi.create_assistant(
+                vapi_result = await vapi.create_assistant(
                     name=self._agent_name(company.name),
                     system_prompt=prompt,
                     business_type=company.business_type or "default",

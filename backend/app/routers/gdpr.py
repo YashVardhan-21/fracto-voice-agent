@@ -15,7 +15,7 @@ async def opt_out(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    ok = await _svc.opt_out_company(company_id, db, current_user.id)
+    ok = await _svc.opt_out_company(company_id, current_user.tenant_id, db, current_user.id)
     if not ok:
         raise HTTPException(404, "Company not found")
     return {"message": "Company opted out — no further outreach will be attempted"}
@@ -27,7 +27,7 @@ async def erase(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await _svc.delete_company_data(company_id, db, current_user.id)
+    return await _svc.delete_company_data(company_id, current_user.tenant_id, db, current_user.id)
 
 
 @router.get("/export/{company_id}")
@@ -36,7 +36,7 @@ async def export_data(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    data = await _svc.export_company_data(company_id, db)
+    data = await _svc.export_company_data(company_id, current_user.tenant_id, db)
     if not data:
         raise HTTPException(404, "Company not found")
     return data

@@ -5,12 +5,12 @@ from app.services.pipeline import Pipeline
 
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=30, name="tasks.run_pipeline_for_company")
-def run_pipeline_for_company(self, company_id: int):
+def run_pipeline_for_company(self, company_id: int, tenant_id: str):
     async def _run():
         async with AsyncSessionLocal() as db:
             pipeline = Pipeline()
             try:
-                result = await pipeline.process_company(company_id, db)
+                result = await pipeline.process_company(company_id, tenant_id, db)
                 await db.commit()
                 return result
             except Exception:
@@ -24,13 +24,15 @@ def run_pipeline_for_company(self, company_id: int):
 
 
 @celery_app.task(name="tasks.run_campaign_pipeline")
-def run_campaign_pipeline(campaign_id: int):
+def run_campaign_pipeline(campaign_id: int, tenant_id: str):
     async def _run():
         from sqlalchemy import select
         from app.models.campaign import Campaign
 
         async with AsyncSessionLocal() as db:
-            result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+            result = await db.execute(
+                select(Campaign).where(Campaign.id == campaign_id, Campaign.tenant_id == tenant_id)
+            )
             campaign = result.scalar_one_or_none()
             if not campaign or not campaign.prospects:
                 return {"success": False, "reason": "no_prospects"}
@@ -39,7 +41,7 @@ def run_campaign_pipeline(campaign_id: int):
             for prospect in campaign.prospects:
                 company_id = prospect.get("company_id")
                 if company_id:
-                    r = await pipeline.process_company(company_id, db)
+                    r = await pipeline.process_company(company_id, tenant_id, db)
                     results.append(r)
             campaign.status = "running"
             return {"success": True, "processed": len(results)}
