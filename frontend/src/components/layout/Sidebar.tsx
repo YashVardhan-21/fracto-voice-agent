@@ -24,7 +24,8 @@ const nav = [
 export function Sidebar() {
   const { data: branding } = useBranding();
   const user = useAuthStore((s) => s.user);
-  const menu = user?.is_admin
+  const isAdmin = Boolean(user?.is_admin) || user?.role === 'admin';
+  const menu = isAdmin
     ? [...nav, { to: '/settings', label: 'Settings', icon: Cog6ToothIcon }]
     : nav;
   return (

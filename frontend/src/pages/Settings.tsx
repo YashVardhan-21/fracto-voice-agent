@@ -14,7 +14,8 @@ type SettingsTab = 'team' | 'integrations';
 export function Settings() {
   const user = useAuthStore((s) => s.user);
   const [tab, setTab] = useState<SettingsTab>('team');
-  if (!user?.is_admin) {
+  const isAdmin = Boolean(user?.is_admin) || user?.role === 'admin';
+  if (!isAdmin) {
     return (
       <>
         <Header title="Settings" />
