@@ -19,6 +19,8 @@ export function Modal({ open, onClose, title, children }: Props) {
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close modal"
+            title="Close modal"
             className="text-steel-grey hover:text-urgency-red transition-colors p-1"
           >
             <XMarkIcon className="w-4 h-4" />
