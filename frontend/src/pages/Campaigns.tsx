@@ -8,6 +8,10 @@ import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 import toast from 'react-hot-toast';
 
+const TH_CLS =
+  'text-left px-4 py-3 text-[11px] font-sf-mono uppercase tracking-[0.05em] text-steel-grey';
+const TD_CLS = 'px-4 py-3';
+
 export function Campaigns() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -34,46 +38,47 @@ export function Campaigns() {
   return (
     <>
       <Header title="Campaigns" />
-      <div className="p-8 space-y-4">
+      <div className="p-4 sm:p-6 space-y-3">
         <div className="flex justify-end">
           <Button onClick={() => setOpen(true)}>New Campaign</Button>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+
+        <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="border-b border-digital-white/10">
               <tr>
                 {['Name', 'Status', 'Created'].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide"
-                  >
+                  <th key={h} className={TH_CLS}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {isLoading && (
                 <tr>
-                  <td colSpan={3} className="text-center py-8 text-gray-400">
+                  <td colSpan={3} className="text-center py-10 text-slate-blue text-[12px] font-sf-mono">
                     Loading…
                   </td>
                 </tr>
               )}
               {!isLoading && campaigns.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="text-center py-8 text-gray-400">
+                  <td colSpan={3} className="text-center py-10 text-slate-blue text-[12px] font-sf-mono">
                     No campaigns yet.
                   </td>
                 </tr>
               )}
               {campaigns.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
-                  <td className="px-4 py-3">
+                <tr
+                  key={c.id}
+                  className="border-b border-digital-white/[0.06] hover:bg-digital-white/[0.03] transition-colors"
+                >
+                  <td className={`${TD_CLS} font-medium text-digital-white text-[13px]`}>{c.name}</td>
+                  <td className={TD_CLS}>
                     <Badge label={c.status} status={c.status} />
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className={`${TD_CLS} text-slate-blue text-[12px] font-sf-mono`}>
                     {new Date(c.created_at).toLocaleDateString()}
                   </td>
                 </tr>
@@ -98,8 +103,8 @@ export function Campaigns() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Optional description"
           />
-          <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setOpen(false)}>
+          <div className="flex gap-2 justify-end pt-1">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button onClick={() => create.mutate()} loading={create.isPending} disabled={!name}>

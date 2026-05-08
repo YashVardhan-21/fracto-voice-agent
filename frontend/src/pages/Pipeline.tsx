@@ -36,10 +36,12 @@ export function Pipeline() {
   return (
     <>
       <Header title="Pipeline" />
-      <div className="p-8 space-y-6 max-w-2xl">
+      <div className="p-4 sm:p-6 space-y-3 max-w-2xl">
         <Card>
-          <h2 className="font-semibold text-gray-900 mb-1">Step 1 — Scrape Jobs from Indeed</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <h2 className="text-[12px] uppercase tracking-[0.05em] font-sf-mono text-digital-white mb-1">
+            Step 1 — Scrape Jobs from Indeed
+          </h2>
+          <p className="text-[13px] text-slate-blue mb-4">
             Find companies currently hiring receptionists — prime prospects for voice agent outreach.
           </p>
           <div className="space-y-3">
@@ -64,16 +66,19 @@ export function Pipeline() {
             </Button>
           </div>
           {lastResult && (
-            <div className="mt-4 p-3 bg-green-50 rounded-lg text-sm text-green-800">
+            <div className="mt-4 p-3 border border-digital-white/20 rounded text-[12px] text-digital-white font-sf-mono">
               ✓ Found {lastResult.scraped} jobs · Added {lastResult.new_companies} new companies
             </div>
           )}
         </Card>
 
         <Card>
-          <h2 className="font-semibold text-gray-900 mb-1">Step 2 — Analyse & Create Agents</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Runs website analysis + prompt generation + VAPI agent creation for all pending companies (batch of 10).
+          <h2 className="text-[12px] uppercase tracking-[0.05em] font-sf-mono text-digital-white mb-1">
+            Step 2 — Analyse &amp; Create Agents
+          </h2>
+          <p className="text-[13px] text-slate-blue mb-4">
+            Runs website analysis + prompt generation + VAPI agent creation for all pending companies
+            (batch of 10).
           </p>
           <Button variant="secondary" onClick={() => batch.mutate()} loading={batch.isPending}>
             Run Batch Pipeline

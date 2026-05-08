@@ -4,14 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0f4ff',
-          100: '#e0e9ff',
-          500: '#4F46E5',
-          600: '#4338CA',
-          700: '#3730A3',
-          900: '#1e1b4b',
-        },
+        'control-panel-grey': '#e5e7eb',
+        'display-black': '#11161c',
+        'obsidian-grey': '#000000',
+        'digital-white': '#ffffff',
+        graphite: '#bbbbbb',
+        'steel-grey': '#a3a3a3',
+        'slate-blue': '#575c75',
+        'urgency-red': '#f43325',
+        'active-blue': '#0078a8',
+      },
+      borderRadius: {
+        cards: '127.397px',
+        pills: '9999px',
+        buttons: '270.89px',
+      },
+      fontFamily: {
+        'proxima-nova': ['var(--font-proxima-nova)'],
+        'sf-mono': ['var(--font-sf-mono)'],
+        'helvetica-neue': ['var(--font-helvetica-neue)'],
+        doto: ['var(--font-doto)'],
+      },
+      boxShadow: {
+        subtle: 'rgba(0, 0, 0, 0.8) 0px 0px 2px 0px',
+        'subtle-2': 'rgba(255, 255, 255, 0.5) 0px 0px 2px 0px',
       },
     },
   },

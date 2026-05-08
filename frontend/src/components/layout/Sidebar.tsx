@@ -29,13 +29,17 @@ export function Sidebar() {
     ? [...nav, { to: '/settings', label: 'Settings', icon: Cog6ToothIcon }]
     : nav;
   return (
-    <aside className="w-64 bg-brand-900 min-h-screen flex flex-col py-6 flex-shrink-0">
+    <aside className="w-64 bg-display-black min-h-screen flex flex-col py-6 flex-shrink-0 border-r border-digital-white/10">
       <div className="px-6 mb-8">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">⚡</span>
-          <span className="text-white text-xl font-bold tracking-tight">{branding?.company_name ?? 'FRACTO'}</span>
+          <span className="text-xl text-urgency-red">●</span>
+          <span className="text-digital-white text-lg font-semibold tracking-[0.08em] uppercase font-sf-mono">
+            {branding?.company_name ?? 'FRACTO'}
+          </span>
         </div>
-        <p className="text-brand-100/60 text-xs mt-1">Voice Agent Platform</p>
+        <p className="text-steel-grey text-[11px] mt-1 font-sf-mono uppercase tracking-[0.05em]">
+          Voice Agent Platform
+        </p>
       </div>
       <nav className="flex-1 px-3 space-y-1">
         {menu.map(({ to, label, icon: Icon }) => (
@@ -45,10 +49,10 @@ export function Sidebar() {
             end={to === '/'}
             className={({ isActive }) =>
               clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2 rounded-pills text-xs font-semibold uppercase tracking-[0.03em] transition-colors font-proxima-nova',
                 isActive
                   ? 'bg-white/10 text-white'
-                  : 'text-white/70 hover:bg-white/5 hover:text-white'
+                  : 'text-steel-grey hover:bg-white/5 hover:text-white'
               )
             }
           >

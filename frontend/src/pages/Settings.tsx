@@ -8,54 +8,78 @@ import { Input } from '../components/ui/Input';
 import { createTeamUser, getTeamUsers, updateTeamUser, type TeamRole } from '../api/team';
 import { getIntegrations, updateIntegrations } from '../api/settings';
 import { useAuthStore } from '../store/authStore';
+import { Badge } from '../components/ui/Badge';
 
 type SettingsTab = 'team' | 'integrations';
+
+const TH_CLS =
+  'text-left px-4 py-3 text-[11px] font-sf-mono uppercase tracking-[0.05em] text-steel-grey';
+const TD_CLS = 'px-4 py-3';
+
+const SECTION_TITLE = 'text-[12px] uppercase tracking-[0.06em] font-sf-mono text-digital-white mb-4';
+
+const SELECT_CLS =
+  'mt-1 h-10 w-full rounded-buttons border border-steel-grey/50 bg-display-black text-digital-white px-4 text-[13px] focus:outline-none focus:ring-2 focus:ring-active-blue';
 
 export function Settings() {
   const user = useAuthStore((s) => s.user);
   const [tab, setTab] = useState<SettingsTab>('team');
   const isAdmin = Boolean(user?.is_admin) || user?.role === 'admin';
+
   if (!isAdmin) {
     return (
       <>
         <Header title="Settings" />
-        <div className="p-8 text-sm text-gray-500">Admin access required.</div>
+        <div className="p-6 text-[12px] text-slate-blue font-sf-mono">Admin access required.</div>
       </>
     );
   }
+
   return (
     <>
       <Header title="Settings" />
-      <div className="p-8 space-y-6">
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden w-fit">
-          <button
-            type="button"
-            onClick={() => setTab('team')}
-            className={`px-4 py-2 text-sm font-medium ${
-              tab === 'team' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Team
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('integrations')}
-            className={`px-4 py-2 text-sm font-medium border-l border-gray-200 ${
-              tab === 'integrations'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            Integrations
-          </button>
+      <div className="p-4 sm:p-6 space-y-4">
+        {/* Tabs */}
+        <div className="flex border border-digital-white/20 rounded-buttons overflow-hidden w-fit">
+          {(['team', 'integrations'] as SettingsTab[]).map((t, i) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={[
+                'px-5 py-2 text-[11px] font-sf-mono uppercase tracking-[0.05em] transition-colors',
+                i > 0 ? 'border-l border-digital-white/20' : '',
+                tab === t
+                  ? 'bg-urgency-red text-digital-white'
+                  : 'bg-transparent text-steel-grey hover:text-digital-white',
+              ].join(' ')}
+            >
+              {t}
+            </button>
+          ))}
         </div>
-        {tab === 'team' ? <TeamTab /> : <IntegrationsTab />}
+
+        {tab === 'team' ? (
+          <TeamTab thCls={TH_CLS} tdCls={TD_CLS} sectionTitle={SECTION_TITLE} selectCls={SELECT_CLS} />
+        ) : (
+          <IntegrationsTab sectionTitle={SECTION_TITLE} />
+        )}
       </div>
     </>
   );
 }
 
-function TeamTab() {
+function TeamTab({
+  thCls,
+  tdCls,
+  sectionTitle,
+  selectCls,
+}: {
+  thCls: string;
+  tdCls: string;
+  sectionTitle: string;
+  selectCls: string;
+}) {
   const qc = useQueryClient();
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
@@ -93,10 +117,11 @@ function TeamTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Team User</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleCreate}>
+    <div className="space-y-3">
+      {/* Add user form */}
+      <div className="bg-display-black border border-digital-white/10 rounded-lg p-4">
+        <h2 className={sectionTitle}>Add Team User</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-3" onSubmit={handleCreate}>
           <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <Input
             label="Full name"
@@ -104,13 +129,9 @@ function TeamTab() {
             onChange={(e) => setFullName(e.target.value)}
             required
           />
-          <label className="text-sm text-gray-600">
-            Role
-            <select
-              className="mt-1 h-11 w-full rounded-md border border-gray-200 px-3"
-              value={role}
-              onChange={(e) => setRole(e.target.value as TeamRole)}
-            >
+          <label className="flex flex-col gap-1">
+            <span className="text-[11px] uppercase tracking-[0.05em] text-digital-white font-sf-mono">Role</span>
+            <select className={selectCls} value={role} onChange={(e) => setRole(e.target.value as TeamRole)}>
               <option value="agent">agent</option>
               <option value="manager">manager</option>
               <option value="admin">admin</option>
@@ -131,36 +152,45 @@ function TeamTab() {
         </form>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      {/* Team table */}
+      <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="border-b border-digital-white/10">
             <tr>
               {['Name', 'Email', 'Role', 'Admin', 'Status', ''].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs uppercase tracking-wide text-gray-500">
+                <th key={h} className={thCls}>
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {isLoading ? (
               <tr>
-                <td className="px-4 py-8 text-center text-gray-400" colSpan={6}>
-                  Loading team...
+                <td className="px-4 py-10 text-center text-slate-blue text-[12px] font-sf-mono" colSpan={6}>
+                  Loading team…
                 </td>
               </tr>
             ) : (
               users.map((u) => (
-                <tr key={u.id}>
-                  <td className="px-4 py-3 font-medium text-gray-900">{u.full_name}</td>
-                  <td className="px-4 py-3 text-gray-500">{u.email}</td>
-                  <td className="px-4 py-3 text-gray-500">{u.role}</td>
-                  <td className="px-4 py-3 text-gray-500">{u.is_admin ? 'Yes' : 'No'}</td>
-                  <td className="px-4 py-3 text-gray-500">{u.is_active ? 'Active' : 'Inactive'}</td>
-                  <td className="px-4 py-3">
+                <tr
+                  key={u.id}
+                  className="border-b border-digital-white/[0.06] hover:bg-digital-white/[0.03] transition-colors"
+                >
+                  <td className={`${tdCls} font-medium text-digital-white text-[13px]`}>{u.full_name}</td>
+                  <td className={`${tdCls} text-slate-blue text-[12px]`}>{u.email}</td>
+                  <td className={`${tdCls} text-slate-blue text-[12px] font-sf-mono uppercase`}>{u.role}</td>
+                  <td className={`${tdCls} text-slate-blue text-[12px]`}>{u.is_admin ? 'Yes' : 'No'}</td>
+                  <td className={tdCls}>
+                    <Badge
+                      label={u.is_active ? 'Active' : 'Inactive'}
+                      status={u.is_active ? 'active' : 'draft'}
+                    />
+                  </td>
+                  <td className={tdCls}>
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant={u.is_active ? 'danger' : 'primary'}
                       loading={toggleActive.isPending}
                       onClick={() => toggleActive.mutate({ userId: u.id, isActive: !u.is_active })}
                     >
@@ -177,7 +207,7 @@ function TeamTab() {
   );
 }
 
-function IntegrationsTab() {
+function IntegrationsTab({ sectionTitle }: { sectionTitle: string }) {
   const [vapiApiKey, setVapiApiKey] = useState('');
   const [vapiVoiceId, setVapiVoiceId] = useState('');
   const [vapiPhoneId, setVapiPhoneId] = useState('');
@@ -243,65 +273,46 @@ function IntegrationsTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Configured Status</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+    <div className="space-y-3">
+      {/* Status summary */}
+      <div className="bg-display-black border border-digital-white/10 rounded-lg p-4">
+        <h2 className={sectionTitle}>Configured Status</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {configuredSummary.map(([label, ok]) => (
-            <div key={label} className="flex items-center justify-between border border-gray-100 rounded px-3 py-2">
-              <span className="text-gray-600">{label}</span>
-              <span className={ok ? 'text-green-700' : 'text-gray-400'}>{ok ? 'Configured' : 'Not set'}</span>
+            <div
+              key={label}
+              className="flex items-center justify-between border border-digital-white/[0.08] rounded px-3 py-2"
+            >
+              <span className="text-[12px] text-slate-blue">{label}</span>
+              <span
+                className={`text-[11px] font-sf-mono uppercase tracking-[0.04em] ${
+                  ok ? 'text-digital-white' : 'text-steel-grey'
+                }`}
+              >
+                {ok ? 'Configured' : 'Not set'}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      <form className="bg-white border border-gray-200 rounded-xl p-5 space-y-4" onSubmit={handleSave}>
-        <h2 className="text-lg font-semibold text-gray-900">Update Integrations</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Update form */}
+      <form
+        className="bg-display-black border border-digital-white/10 rounded-lg p-4 space-y-4"
+        onSubmit={handleSave}
+      >
+        <h2 className={sectionTitle}>Update Integrations</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Input label="VAPI API key" type="password" value={vapiApiKey} onChange={(e) => setVapiApiKey(e.target.value)} />
           <Input label="VAPI Voice ID" value={vapiVoiceId} onChange={(e) => setVapiVoiceId(e.target.value)} />
-          <Input
-            label="VAPI Phone Number ID"
-            value={vapiPhoneId}
-            onChange={(e) => setVapiPhoneId(e.target.value)}
-          />
-          <Input
-            label="Google Places API key"
-            type="password"
-            value={googlePlaces}
-            onChange={(e) => setGooglePlaces(e.target.value)}
-          />
+          <Input label="VAPI Phone Number ID" value={vapiPhoneId} onChange={(e) => setVapiPhoneId(e.target.value)} />
+          <Input label="Google Places API key" type="password" value={googlePlaces} onChange={(e) => setGooglePlaces(e.target.value)} />
           <Input label="Adzuna App ID" type="password" value={adzunaAppId} onChange={(e) => setAdzunaAppId(e.target.value)} />
-          <Input
-            label="Adzuna App Key"
-            type="password"
-            value={adzunaAppKey}
-            onChange={(e) => setAdzunaAppKey(e.target.value)}
-          />
-          <Input
-            label="Adzuna Country"
-            value={adzunaCountry}
-            onChange={(e) => setAdzunaCountry(e.target.value)}
-          />
-          <Input
-            label="OpenAI API key"
-            type="password"
-            value={openaiKey}
-            onChange={(e) => setOpenaiKey(e.target.value)}
-          />
-          <Input
-            label="Gemini API key"
-            type="password"
-            value={geminiKey}
-            onChange={(e) => setGeminiKey(e.target.value)}
-          />
-          <Input
-            label="Deepseek API key"
-            type="password"
-            value={deepseekKey}
-            onChange={(e) => setDeepseekKey(e.target.value)}
-          />
+          <Input label="Adzuna App Key" type="password" value={adzunaAppKey} onChange={(e) => setAdzunaAppKey(e.target.value)} />
+          <Input label="Adzuna Country" value={adzunaCountry} onChange={(e) => setAdzunaCountry(e.target.value)} />
+          <Input label="OpenAI API key" type="password" value={openaiKey} onChange={(e) => setOpenaiKey(e.target.value)} />
+          <Input label="Gemini API key" type="password" value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} />
+          <Input label="Deepseek API key" type="password" value={deepseekKey} onChange={(e) => setDeepseekKey(e.target.value)} />
         </div>
         <Button type="submit" loading={save.isPending}>
           Save Integrations
@@ -310,4 +321,3 @@ function IntegrationsTab() {
     </div>
   );
 }
-

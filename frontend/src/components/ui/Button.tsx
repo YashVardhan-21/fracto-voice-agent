@@ -2,22 +2,27 @@ import clsx from 'clsx';
 import { ButtonHTMLAttributes } from 'react';
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'liftoff';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 }
 
 const variants = {
-  primary: 'bg-brand-500 text-white hover:bg-brand-600 focus:ring-brand-500',
-  secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-brand-500',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-  ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-300',
+  primary:
+    'bg-urgency-red text-digital-white rounded-buttons shadow-subtle-2 hover:opacity-95 focus:ring-urgency-red',
+  secondary:
+    'bg-display-black text-digital-white rounded-buttons border border-digital-white/20 hover:bg-display-black/90 focus:ring-active-blue',
+  danger:
+    'bg-urgency-red text-digital-white rounded-buttons shadow-subtle hover:opacity-90 focus:ring-urgency-red',
+  ghost: 'bg-transparent text-obsidian-grey rounded-none px-0 py-0 hover:text-urgency-red focus:ring-graphite',
+  liftoff:
+    'bg-[var(--gradient-gradient-combustion)] text-digital-white rounded-full shadow-subtle-2 hover:brightness-105 focus:ring-urgency-red',
 };
 
 const sizes = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base',
+  sm: 'px-2 py-0.5 text-[11px]',
+  md: 'px-2 py-1 text-[12px]',
+  lg: 'px-3 py-1.5 text-sm',
 };
 
 export function Button({
@@ -33,11 +38,13 @@ export function Button({
     <button
       disabled={disabled || loading}
       className={clsx(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
+        'inline-flex items-center justify-center gap-2 font-semibold tracking-[0.02em] transition-all',
         'focus:outline-none focus:ring-2 focus:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
+        'font-proxima-nova',
         variants[variant],
-        sizes[size],
+        variant !== 'liftoff' && sizes[size],
+        variant === 'liftoff' && 'h-28 w-28 text-lg',
         className
       )}
       {...props}

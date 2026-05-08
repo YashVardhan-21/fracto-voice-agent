@@ -35,12 +35,14 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+    <div className="min-h-screen bg-display-black flex items-center justify-center p-4">
+      <div className="bg-display-black border border-digital-white/20 rounded-cards shadow-subtle-2 p-8 w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="text-4xl">⚡</span>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">FRACTO</h1>
-          <p className="text-gray-500 text-sm">Voice Agent Platform</p>
+          <span className="text-2xl text-urgency-red font-sf-mono">●</span>
+          <h1 className="text-2xl font-semibold text-digital-white mt-2 tracking-[0.08em] uppercase font-sf-mono">
+            FRACTO
+          </h1>
+          <p className="text-slate-blue text-xs uppercase tracking-[0.05em] mt-2">Voice Agent Platform</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
@@ -50,6 +52,7 @@ export function Login() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoFocus
+            placeholder="agent@mission.local"
           />
           <Input
             label="Password"
@@ -57,8 +60,9 @@ export function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            placeholder="••••••••"
           />
-          <Button type="submit" loading={loading} className="w-full">
+          <Button type="submit" loading={loading} className="w-full justify-center">
             Sign in
           </Button>
         </form>
