@@ -153,8 +153,8 @@ function TeamTab({
       </div>
 
       {/* Team table */}
-      <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-x-auto">
+        <table className="w-full min-w-[780px] text-sm">
           <thead className="border-b border-digital-white/10">
             <tr>
               {['Name', 'Email', 'Role', 'Admin', 'Status', ''].map((h) => (

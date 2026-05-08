@@ -80,7 +80,7 @@ export function Companies() {
                 placeholder="Search companies…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-56 text-[12px]"
+                className="w-full sm:w-56 text-[12px]"
               />
             </div>
             <div className="flex border border-digital-white/20 rounded-buttons overflow-hidden">
@@ -102,7 +102,7 @@ export function Companies() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <Button
               size="sm"
               variant="secondary"
@@ -131,8 +131,8 @@ export function Companies() {
         </div>
 
         {/* Table */}
-        <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-x-auto">
+          <table className="w-full min-w-[980px] text-sm">
             <thead className="border-b border-digital-white/10">
               <tr>
                 {['Company', 'Type', 'Location', 'Email', 'Score', 'Website Quality', 'Upsell', 'Status', ''].map(

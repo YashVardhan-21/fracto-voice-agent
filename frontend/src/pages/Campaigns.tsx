@@ -43,8 +43,8 @@ export function Campaigns() {
           <Button onClick={() => setOpen(true)}>New Campaign</Button>
         </div>
 
-        <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="border-b border-digital-white/10">
               <tr>
                 {['Name', 'Status', 'Created'].map((h) => (

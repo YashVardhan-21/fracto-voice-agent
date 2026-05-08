@@ -17,8 +17,8 @@ export function VoiceAgents() {
     <>
       <Header title="Voice Agents" />
       <div className="p-4 sm:p-6">
-        <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-display-black border border-digital-white/10 rounded-lg overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="border-b border-digital-white/10">
               <tr>
                 {['Name', 'Status', 'Total Calls', 'Successful', 'Created'].map((h) => (

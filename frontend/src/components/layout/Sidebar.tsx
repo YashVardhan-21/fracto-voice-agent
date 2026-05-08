@@ -21,7 +21,12 @@ const nav = [
   { to: '/analytics', label: 'Analytics', icon: ChartBarIcon },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  className?: string;
+  onNavigate?: () => void;
+}
+
+export function Sidebar({ className, onNavigate }: SidebarProps) {
   const { data: branding } = useBranding();
   const user = useAuthStore((s) => s.user);
   const isAdmin = Boolean(user?.is_admin) || user?.role === 'admin';
@@ -29,7 +34,12 @@ export function Sidebar() {
     ? [...nav, { to: '/settings', label: 'Settings', icon: Cog6ToothIcon }]
     : nav;
   return (
-    <aside className="w-64 bg-display-black min-h-screen flex flex-col py-6 flex-shrink-0 border-r border-digital-white/10">
+    <aside
+      className={clsx(
+        'w-64 bg-display-black min-h-screen flex flex-col py-6 flex-shrink-0 border-r border-digital-white/10',
+        className
+      )}
+    >
       <div className="px-6 mb-8">
         <div className="flex items-center gap-2">
           <span className="text-xl text-urgency-red">●</span>
@@ -47,6 +57,7 @@ export function Sidebar() {
             key={to}
             to={to}
             end={to === '/'}
+            onClick={onNavigate}
             className={({ isActive }) =>
               clsx(
                 'flex items-center gap-3 px-3 py-2 rounded-pills text-xs font-semibold uppercase tracking-[0.03em] transition-colors font-proxima-nova',
